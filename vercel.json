@@ -10,7 +10,7 @@
       "entrypoint": "app.main:app",
       "routes": [
         {
-          "src": "/svc/api/(.*)",
+          "source": "/svc/api/(.*)",
           "transforms": [
             {
               "type": "request.path",

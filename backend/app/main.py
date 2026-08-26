@@ -96,9 +96,9 @@ def static_recommendations(limit: int = Query(10, ge=1, le=50), db: Session = De
 def health(db: Session = Depends(get_db)) -> dict[str, object]:
     try:
         count = db.scalar(select(func.count()).select_from(Candidate)) or 0
-        return {"status": "ok", "database": "connected", "candidate_count": count}
+        return {"status": "ok", "database": "connected", "candidate_count": count, "storage_backend": settings.storage_backend}
     except Exception:
-        return {"status": "degraded", "database": "unavailable", "candidate_count": 0}
+        return {"status": "degraded", "database": "unavailable", "candidate_count": 0, "storage_backend": settings.storage_backend}
 
 
 @app.get("/api/candidates", response_model=SearchResponse)

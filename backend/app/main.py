@@ -96,9 +96,23 @@ def static_recommendations(limit: int = Query(10, ge=1, le=50), db: Session = De
 def health(db: Session = Depends(get_db)) -> dict[str, object]:
     try:
         count = db.scalar(select(func.count()).select_from(Candidate)) or 0
-        return {"status": "ok", "database": "connected", "candidate_count": count, "storage_backend": settings.storage_backend}
+        return {
+            "status": "ok",
+            "database": "connected",
+            "candidate_count": count,
+            "storage_backend": settings.storage_backend,
+            "supabase_url_configured": bool(settings.supabase_url),
+            "supabase_service_role_key_configured": bool(settings.supabase_service_role_key),
+        }
     except Exception:
-        return {"status": "degraded", "database": "unavailable", "candidate_count": 0, "storage_backend": settings.storage_backend}
+        return {
+            "status": "degraded",
+            "database": "unavailable",
+            "candidate_count": 0,
+            "storage_backend": settings.storage_backend,
+            "supabase_url_configured": bool(settings.supabase_url),
+            "supabase_service_role_key_configured": bool(settings.supabase_service_role_key),
+        }
 
 
 @app.get("/api/candidates", response_model=SearchResponse)

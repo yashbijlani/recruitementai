@@ -53,6 +53,16 @@ uvicorn app.main:app --reload --port 8000
 
 The frontend should continue calling FastAPI. It does not read Supabase directly, which keeps database credentials and candidate access on the backend.
 
+For production CV storage, create a private Supabase Storage bucket named `candidate-cvs` in Storage > New bucket, then set these backend-only Vercel variables:
+
+```dotenv
+STORAGE_BACKEND=supabase
+STORAGE_BUCKET=candidate-cvs
+SUPABASE_SERVICE_ROLE_KEY=your_server_only_service_role_key
+```
+
+The service-role key is required for server-side Storage uploads and must not be configured as a `NEXT_PUBLIC_*` variable. Uploaded CVs are stored in Supabase Storage; extraction downloads them only to a temporary file and removes that file afterward. Local development continues to use `STORAGE_BACKEND=local` and `UPLOAD_DIR=../data/uploads`.
+
 For Vercel, browser requests use the same-domain `/svc/api/...` route. The root `vercel.json` service transform presents those requests to FastAPI as its existing `/api/...` paths. Local development continues to use `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`.
 
 ## Current MVP slice

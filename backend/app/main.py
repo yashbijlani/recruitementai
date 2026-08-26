@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import resolve_path, settings
 from app.db import Base, SessionLocal, engine, get_db
 from app.documents.extraction import extract_document_text
-from app.documents.storage import LocalFileStorage
+from app.documents.storage import get_storage
 from app.ingestion.excel import import_workbook
 from app.models import Candidate, CandidateDocument, CandidateUpdateProposal
 from app.schemas import CandidateCreate, CandidateRead, CandidateUpdate, ChangeProposalRead, DocumentRead, ExtractionDiagnostic, MetricsRead, RecommendationRequest, RecommendationResponse, RecommendationResult, ScoreBreakdown, SearchRequest, SearchResponse, UploadStatus
@@ -25,7 +25,6 @@ from app.ranking.recommender import recommend, static_recommend
 Base.metadata.create_all(engine)
 app = FastAPI(title=settings.app_name, version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins_list, allow_methods=["*"], allow_headers=["*"])
-storage = LocalFileStorage()
 
 
 def parse_query(request: SearchRequest) -> SearchRequest:
@@ -247,7 +246,8 @@ def process_upload(document_id: str, storage_key: str) -> None:
         document = db.get(CandidateDocument, document_id)
         if not document:
             return
-        result = extract_document_text(storage.path(storage_key))
+        with get_storage().temporary_path(storage_key) as document_path:
+            result = extract_document_text(document_path)
         document.status = "extracted" if result.quality >= 0.35 else "extraction_failed"
         document.extraction_method = result.method
         document.extraction_quality = result.quality
@@ -277,7 +277,7 @@ async def upload_cv(background_tasks: BackgroundTasks, file: UploadFile = File(.
     if extension not in {".pdf", ".docx", ".txt"}:
         raise HTTPException(status_code=415, detail="Supported CV formats are PDF, DOCX, and TXT.")
     content = await file.read()
-    storage_key = storage.save(file.filename or "upload", content)
+    storage_key = get_storage().save(file.filename or "upload", content)
     with SessionLocal() as db:
         document = CandidateDocument(filename=file.filename or "upload", storage_key=storage_key, status="queued")
         db.add(document)
@@ -291,8 +291,10 @@ async def upload_cv(background_tasks: BackgroundTasks, file: UploadFile = File(.
 @app.post("/api/dev/extract-diagnostic", response_model=ExtractionDiagnostic)
 async def extract_diagnostic(file: UploadFile = File(...)) -> ExtractionDiagnostic:
     content = await file.read()
+    storage = get_storage()
     key = storage.save(file.filename or "diagnostic", content)
-    result = extract_document_text(storage.path(key))
+    with storage.temporary_path(key) as document_path:
+        result = extract_document_text(document_path)
     return ExtractionDiagnostic(filename=file.filename or "diagnostic", pages=result.pages, method=result.method, characters=result.characters, words=result.words, quality=result.quality, preview=result.text[:500])
 
 
@@ -302,7 +304,9 @@ async def admin_import_candidates(file: UploadFile | None = File(None), x_role: 
         raise HTTPException(status_code=403, detail="Admin role required")
     source = resolve_path(settings.seed_file)
     if file:
+        storage = get_storage()
         source = Path(storage.save(file.filename or "master.xlsx", await file.read()))
-        source = storage.path(source.name)
+        with storage.temporary_path(source.name) as source_path:
+            return import_workbook(db, source_path)
     with SessionLocal() as db:
         return import_workbook(db, source)

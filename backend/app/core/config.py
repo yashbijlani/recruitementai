@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://candidate_app:candidate_app@localhost:5432/candidate_intelligence"
     supabase_url: str | None = None
     supabase_publishable_key: str | None = None
+    supabase_service_role_key: str | None = None
+    storage_backend: str = "local"
+    storage_bucket: str = "candidate-cvs"
     seed_file: str = "../data/Dummy Candidate Database 1000 expanded.xlsx"
     cors_origins: str = "http://localhost:3000"
     data_dir: str = "../data"
@@ -25,7 +28,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> list[str]:
-        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [origin.strip().rstrip("/") for origin in self.cors_origins.split(",") if origin.strip()]
         return origins if origins else ["http://localhost:3000"]
 
 

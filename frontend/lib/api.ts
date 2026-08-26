@@ -42,7 +42,7 @@ export type CandidateFilters = {
   page_size?: number;
 };
 
-const API = process.env.NODE_ENV === "production" ? "/svc" : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API = process.env.NODE_ENV === "production" ? "/api" : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = init?.body instanceof FormData ? { ...init?.headers } : { "Content-Type": "application/json", ...init?.headers };

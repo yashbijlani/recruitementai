@@ -1,0 +1,60 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# JavaScript / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases and runtime files
+*.db
+*.sqlite
+*.sqlite3
+*.log
+data/uploads/*
+!data/uploads/.gitkeep
+
+# Keep seed/import sources trackable
+!data/
+!data/*.xlsx
+!data/*.xls
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo

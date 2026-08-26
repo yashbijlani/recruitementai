@@ -53,6 +53,8 @@ uvicorn app.main:app --reload --port 8000
 
 The frontend should continue calling FastAPI. It does not read Supabase directly, which keeps database credentials and candidate access on the backend.
 
+For Vercel, browser requests use the same-domain `/svc/api/...` route. The root `vercel.json` service transform presents those requests to FastAPI as its existing `/api/...` paths. Local development continues to use `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`.
+
 ## Current MVP slice
 
 - Idempotent Excel import with stable `CAND-*` IDs and original-row provenance.

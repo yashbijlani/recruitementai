@@ -24,7 +24,7 @@ from app.ranking.recommender import recommend, static_recommend
 
 Base.metadata.create_all(engine)
 app = FastAPI(title=settings.app_name, version="0.2.0")
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","), allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins_list, allow_methods=["*"], allow_headers=["*"])
 storage = LocalFileStorage()
 
 
